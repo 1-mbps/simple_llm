@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simple-llm"
+version = "1.0.0"
+authors = [
+    {name="Lucas Khan", email="lucaskhan03@gmail.com"}
+]
+description="Ultra-lightweight LLM agent orchestration for Gemini and OpenAI-like providers"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "termcolor>=2.4.0",
+    "google-generativeai>=0.4.0",
+    "openai>=1.6.0"
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
