@@ -22,3 +22,16 @@ dependencies = [
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/simple-llm"]
+exclude = [
+    "**test**",
+    "*.md",
+    "*.env",
+    "**__pycache__**"
+]
+
+[project.urls]
+Homepage = "https://github.com/1-mbps/simple-llm"
+Issues = "https://github.com/1-mbps/simple-llm/issues"
