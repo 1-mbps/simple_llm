@@ -9,6 +9,7 @@ The following code allows you to have a conversation with an agent on the termin
 from simple_llm.agents.openai import OpenAIAgent
 import dotenv
 
+# add your OPENAI_API_KEY here
 dotenv.load_dotenv()
 
 agent = OpenAIAgent(

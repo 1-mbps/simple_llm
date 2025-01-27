@@ -17,10 +17,11 @@ class BaseOpenAIAgent(Agent, ABC):
             system_message: str,
             stream: bool,
             track_usage: bool,
+            tools: list,
             default_params: dict,
             api_key: Optional[str] = None,
         ):
-        super().__init__("openai", name, model, client, system_message, stream, api_key, default_params)
+        super().__init__("openai", name, model, client, system_message, stream, api_key, tools, default_params)
         self._messages.append({"role": "system", "content": self.system_message})
         self.track_usage = track_usage
 
@@ -40,11 +41,15 @@ class BaseOpenAIAgent(Agent, ABC):
         if stream:
             kwargs["stream_options"] = {"include_usage": self.track_usage}
         return kwargs
+    
+    def add_tool(self, tool):
+        pass
+        # Rita TODO
 
 class OpenAIAgent(BaseOpenAIAgent):
-    def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, default_params: dict = {}, api_key = None):
+    def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, tools: list = [], default_params: dict = {}, api_key = None):
         client = OpenAI(api_key=api_key)
-        super().__init__(name, model, client, system_message, stream, track_usage, default_params, api_key)
+        super().__init__(name, model, client, system_message, stream, track_usage, tools, default_params, api_key)
 
     def process_completion(self, completion):
         return completion.choices[0].message.content
@@ -54,9 +59,9 @@ class OpenAIAgent(BaseOpenAIAgent):
             return chunk.choices[0].delta.content
 
 class AsyncOpenAIAgent(BaseOpenAIAgent, AsyncAgent):
-    def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, default_params: dict = {}, api_key = None):
+    def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, tools: list = [], default_params: dict = {}, api_key = None):
         client = AsyncOpenAI(api_key=api_key)
-        super().__init__(name, model, client, system_message, stream, track_usage, default_params, api_key)
+        super().__init__(name, model, client, system_message, stream, track_usage, tools, default_params, api_key)
 
 
 

@@ -8,13 +8,14 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please run `pip install simple-llm[gemini] to use the Gemini agents.")
 
-class GeminiAgent(Agent, ABC):
+class GeminiAgent(Agent):
     def __init__(
         self,
         name: str,
         model: str,
         system_message: str,
         stream: bool = False,
+        tools: list = [],
         default_params: dict = {},
         api_key: str = None
     ):
@@ -32,7 +33,7 @@ class GeminiAgent(Agent, ABC):
         client = self.gemini_model.start_chat(history=[])
 
         # Initialize base agent object
-        super().__init__("gemini", name, model, client, system_message, stream, api_key, default_params, track_msgs=False)
+        super().__init__("gemini", name, model, client, system_message, stream, api_key, tools, default_params, track_msgs=False)
 
         # Make self._messages point to client's message list
         self.set_messages_pointer(client.history)
@@ -64,3 +65,7 @@ class GeminiAgent(Agent, ABC):
     
     def process_chunk(self, chunk: GenerateContentResponse):
         return chunk.text
+    
+    def add_tool(self, tool):
+        pass
+        # Rita TODO

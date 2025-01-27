@@ -16,6 +16,7 @@ class Agent(ABC):
         system_message: str,
         stream: bool,
         api_key: str | None,
+        tools: list = [],
         default_params: dict = {},
         track_msgs: bool = True
     ):
@@ -34,6 +35,9 @@ class Agent(ABC):
 
         self._messages: List[Dict[str, str]] = []
         self.completion_fn = self.get_completion_function()
+
+        for tool in tools:
+            self.add_tool(tool)
 
     @abstractmethod
     def add_user_message(self, query: str) -> None:
@@ -103,6 +107,10 @@ class Agent(ABC):
         """
         Extract and return string content from chunk and do any additional logic, if required
         """
+        pass
+
+    @abstractmethod
+    def add_tool(self, tool):
         pass
 
     def start_chat(self, init_message: str = None, stream: bool = False, **kwargs) -> None:
