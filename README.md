@@ -1,7 +1,7 @@
 # simple-llm
-A lightweight Python package providing a bare-bones implementation of LLM-based agents. Provides a unified, highly customizable interface for various LLM providers with minimal abstraction.
+A lightweight Python package providing a bare-bones implementation of LLM agents. Provides a unified, highly customizable interface for various LLM providers with minimal abstraction.
 
-We've purposely only implemented the basic stuff - streaming, conversation memory, and API calls – so that you can easily customize and modify the agents for your own use case.
+We've purposely only implemented the basic stuff - streaming, conversation memory, function calling, and API calls – so that you can easily customize and modify the agents for your own use case.
 
 ## Quickstart
 The following code allows you to have a conversation with an agent on the terminal:
@@ -25,7 +25,9 @@ agent.start_chat(stream=True, init_message=QUERY)
 All agents check the environment variables for API keys. You can also specify an `api_key` parameter on each agent and set the key there.
 
 ## Design
-Other LLM frameworks add a tremendous amount of abstraction and overhead to ensure that they can easily be used by novice developers. This package is the opposite – it's extremely lightweight, highly customizable, and designed for you to override class methods and get *really* close to the original LLM clients.
+Other LLM frameworks add a tremendous amount of abstraction and overhead. This is great for novice developers, but for more complex LLM applications, it can get in your way.
+
+This package is completely different. It's extremely lightweight, highly customizable, and designed for you to override class methods and get *really* close to the original LLM clients.
 
 ### Example
 ```python
