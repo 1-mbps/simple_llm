@@ -1,8 +1,12 @@
 from ..agent import Agent, AsyncAgent
 
 from abc import ABC
-from google.generativeai import GenerativeModel, GenerationConfig, configure
-from google.generativeai.types.generation_types import GenerateContentResponse
+
+try:
+    from google.generativeai import GenerativeModel, GenerationConfig, configure
+    from google.generativeai.types.generation_types import GenerateContentResponse
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please run `pip install simple-llm[gemini] to use the Gemini agents.")
 
 class GeminiAgent(Agent, ABC):
     def __init__(
@@ -60,17 +64,3 @@ class GeminiAgent(Agent, ABC):
     
     def process_chunk(self, chunk: GenerateContentResponse):
         return chunk.text
-
-    # def nostream_reply(self, query, **kwargs):
-    #     response = self.client.send_message(query, generation_config=self.get_config(kwargs))
-    #     return response.text
-    
-    # def stream_reply(self, query, **kwargs):
-    #     stream = self.client.send_message(query, generation_config=self.get_config(kwargs))
-    #     response = ""
-    #     for chunk in stream:
-    #         delta = chunk.text
-    #         if delta:
-    #             yield delta
-    #             response += delta
-    #             continue

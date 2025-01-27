@@ -2,7 +2,11 @@ from ..agent import Agent, AsyncAgent
 
 from abc import ABC
 from typing import Optional
-from openai import OpenAI, AsyncOpenAI
+
+try:
+    from openai import OpenAI, AsyncOpenAI
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please run `pip install simple-llm[openai] to use the OpenAI agents.")
 
 class BaseOpenAIAgent(Agent, ABC):
     def __init__(

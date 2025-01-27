@@ -105,9 +105,6 @@ class Agent(ABC):
         """
         pass
 
-    def merge_params(self, new_params: dict) -> dict:
-        return {**self.default_params, **(new_params or {})}
-
     def start_chat(self, init_message: str = None, stream: bool = False, **kwargs) -> None:
         """
         For user-agent conversations that get printed to the console.
