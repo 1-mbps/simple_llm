@@ -1,7 +1,7 @@
-from agent import Agent, AsyncAgent
+from ..agent import Agent, AsyncAgent
 
 from abc import ABC
-from typing import Optional, AsyncGenerator, Generator, Any
+from typing import Optional
 from openai import OpenAI, AsyncOpenAI
 
 class BaseOpenAIAgent(Agent, ABC):

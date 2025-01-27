@@ -1,4 +1,4 @@
-from agent import Agent, AsyncAgent
+from ..agent import Agent, AsyncAgent
 
 from abc import ABC
 from google.generativeai import GenerativeModel, GenerationConfig, configure

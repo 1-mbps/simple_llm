@@ -1,4 +1,4 @@
-from printing import print_role, print_dashed_line, print_message
+from .printing import print_role, print_dashed_line, print_message
 
 from abc import ABC, abstractmethod
 import os
