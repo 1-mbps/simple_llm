@@ -64,7 +64,3 @@ class AsyncOpenAIAgent(BaseOpenAIAgent, AsyncAgent):
     def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_msgs: bool = True, track_usage: bool = True, tools: list = [], default_params: dict = {}, api_key = None):
         client = AsyncOpenAI(api_key=api_key)
         super().__init__(name, model, client, system_message, stream, track_msgs, track_usage, tools, default_params, api_key)
-
-
-
-    
