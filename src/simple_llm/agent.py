@@ -162,8 +162,20 @@ class Agent(ABC):
         self._messages = msg_list
 
 class AsyncAgent(Agent):
-    def __init__(self, api_type, name, model, system_message, stream, api_key, track_msgs: bool = True):
-        super().__init__(api_type, name, model, system_message, stream, api_key, track_msgs=track_msgs)
+    def __init__(
+        self,
+        api_type: str,
+        name: str,
+        model: str,
+        client: OpenAI | AsyncOpenAI | ChatSession,
+        system_message: str,
+        stream: bool,
+        api_key: str | None,
+        tools: list = [],
+        default_params: dict = {},
+        track_msgs: bool = True
+    ):
+        super().__init__(api_type, name, model, client, system_message, stream, api_key, tools, default_params, track_msgs)
 
     async def reply(self, query: str, **kwargs) -> str | AsyncGenerator:
         return await self.stream_reply(query, **kwargs) if self.stream else await self.nostream_reply(query, **kwargs)
@@ -187,7 +199,7 @@ class AsyncAgent(Agent):
         # Unpack completion arguments and feed them into completion function
         stream = await self.completion_fn(**self.get_completion_args(True, messages=self._messages, query=query, **kwargs))
         
-        return await self.process_stream(stream)
+        return self.process_stream(stream)
 
     async def process_stream(self, stream: AsyncGenerator) -> AsyncGenerator[str]:
         response = ""
@@ -221,7 +233,7 @@ class AsyncAgent(Agent):
                 stream = await self.stream_reply(msg, **kwargs)
                 
                 # Print each token
-                for chunk in stream:
+                async for chunk in stream:
                     print(chunk, end="")
 
                 # Print dashed line at the end of the message

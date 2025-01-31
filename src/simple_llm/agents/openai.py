@@ -42,6 +42,13 @@ class BaseOpenAIAgent(Agent, ABC):
             kwargs["stream_options"] = {"include_usage": self.track_usage}
         return kwargs
     
+    def process_completion(self, completion):
+        return completion.choices[0].message.content
+    
+    def process_chunk(self, chunk):
+        if chunk.choices and chunk.choices[0].delta.content is not None:
+            return chunk.choices[0].delta.content
+    
     def add_tool(self, tool):
         pass
         # Rita TODO
@@ -50,13 +57,6 @@ class OpenAIAgent(BaseOpenAIAgent):
     def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, tools: list = [], default_params: dict = {}, api_key = None):
         client = OpenAI(api_key=api_key)
         super().__init__(name, model, client, system_message, stream, track_usage, tools, default_params, api_key)
-
-    def process_completion(self, completion):
-        return completion.choices[0].message.content
-    
-    def process_chunk(self, chunk):
-        if chunk.choices and chunk.choices[0].delta.content is not None:
-            return chunk.choices[0].delta.content
 
 class AsyncOpenAIAgent(BaseOpenAIAgent, AsyncAgent):
     def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_usage: bool = True, tools: list = [], default_params: dict = {}, api_key = None):
