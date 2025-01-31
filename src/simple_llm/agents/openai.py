@@ -10,18 +10,19 @@ except ModuleNotFoundError:
 
 class BaseOpenAIAgent(Agent, ABC):
     def __init__(
-            self,
-            name: str,
-            model: str,
-            client: OpenAI | AsyncOpenAI,
-            system_message: str,
-            stream: bool,
-            track_usage: bool,
-            tools: list,
-            default_params: dict,
-            api_key: Optional[str] = None,
-        ):
-        super().__init__("openai", name, model, client, system_message, stream, api_key, tools, default_params)
+        self,
+        name: str,
+        model: str,
+        client: OpenAI | AsyncOpenAI,
+        system_message: str,
+        stream: bool,
+        track_usage: bool,
+        tools: list,
+        default_params: dict,
+        api_key: Optional[str] = None,
+        api_type: str = "openai"
+    ):
+        super().__init__(api_type, name, model, client, system_message, stream, api_key, tools, default_params)
         self._messages.append({"role": "system", "content": self.system_message})
         self.track_usage = track_usage
 
