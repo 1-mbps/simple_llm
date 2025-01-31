@@ -55,7 +55,8 @@ class Agent(ABC):
             self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        response = self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
+        completion = self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
+        response = self.process_completion(completion)
         
         if self.track_msgs:
             self.add_agent_message(response)
@@ -185,8 +186,9 @@ class AsyncAgent(Agent):
             self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        response = await self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
-        
+        completion = await self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
+        response = self.process_completion(completion)
+
         if self.track_msgs:
             self.add_agent_message(response)
 
