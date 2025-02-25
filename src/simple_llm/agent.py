@@ -2,9 +2,18 @@ from .printing import print_role, print_dashed_line, print_message
 
 from abc import ABC, abstractmethod
 import os
-from typing import List, Dict, AsyncGenerator, Generator, Callable, Any
-from openai import OpenAI, AsyncOpenAI
-from google.generativeai.generative_models import ChatSession
+from typing import List, Dict, AsyncGenerator, Generator, Callable
+from fastapi.responses import StreamingResponse
+
+try:
+    from openai import OpenAI, AsyncOpenAI
+except Exception:
+    raise ImportError("Run `pip install simple_llm[openai]` to use OpenAI agents.")
+
+try:
+    from google.generativeai.generative_models import ChatSession
+except Exception:
+    raise ImportError("Run `pip install simple_llm[gemini]` to use OpenAI agents.")
 
 class Agent(ABC):
     def __init__(
@@ -162,6 +171,29 @@ class Agent(ABC):
     def set_messages_pointer(self, msg_list: List) -> None:
         self._messages = msg_list
 
+    async def sse_stream(self, query: str, chunk_event_name: str = "delta", **kwargs) -> AsyncGenerator[str]:
+        """
+        Stream output as server-sent events
+        """
+        yield "event: start\ndata: \n\n"
+        for chunk in self.stream_reply(query, **kwargs):
+            yield f"event: {chunk_event_name}\ndata: {chunk}\n\n"
+        yield "event: done\ndata: \n\n"
+
+    def fastapi_stream(self, query: str, sse: bool = True, chunk_event_name: str = "delta", **kwargs) -> StreamingResponse:
+        """
+        Streams agent responses as a FastAPI StreamingResponse type.
+
+        Args:
+            query (str): user's query, to be sent to the agent
+            sse (bool): whether to stream as server-sent events
+            chunk_event_name (str): the event name of each streamed chunk, if server-sent events are used
+        """
+        if sse:
+            return StreamingResponse(content=self.sse_stream(query, chunk_event_name, **kwargs), media_type="text/event-stream")
+        else:
+            return StreamingResponse(content=self.stream_reply(query, **kwargs), media_type="text/event-stream")
+
 class AsyncAgent(Agent):
     def __init__(
         self,
@@ -247,3 +279,12 @@ class AsyncAgent(Agent):
                 print_message(self.name, response)
 
             msg = input("Enter message for agent. Type 'exit' to end the conversation: ")
+
+    async def sse_stream(self, query: str, chunk_event_name: str = "delta", **kwargs) -> AsyncGenerator[str]:
+        """
+        Stream output as server-sent events
+        """
+        yield "event: start\ndata: \n\n"
+        async for chunk in self.stream_reply(query, **kwargs):
+            yield f"event: {chunk_event_name}\ndata: {chunk}\n\n"
+        yield "event: done\ndata: \n\n"

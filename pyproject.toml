@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-dependencies = ["termcolor>=2.4.0"]
+dependencies = ["termcolor>=2.4.0", "fastapi"]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
