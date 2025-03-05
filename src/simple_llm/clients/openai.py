@@ -36,8 +36,8 @@ class BaseOpenAIAgent(Agent, ABC):
     def get_completion_function(self):
         return getattr(self.client.chat.completions, "create")
     
-    def get_completion_args(self, stream: bool, messages: list[dict], query: str = None, **kwargs) -> dict:
-        kwargs["model"] = self.model
+    def get_completion_args(self, stream: bool, messages: list[dict], **kwargs) -> dict:
+        kwargs["model"] = kwargs.get("model", self.model)
         kwargs["messages"] = messages
         kwargs["stream"] = stream
         if stream:
@@ -50,6 +50,9 @@ class BaseOpenAIAgent(Agent, ABC):
     def process_chunk(self, chunk):
         if chunk.choices and chunk.choices[0].delta.content is not None:
             return chunk.choices[0].delta.content
+        
+    def get_logprobs(self, completion):
+        return completion.choices[0].logprobs.content[0].top_logprobs
     
     def add_tool(self, tool):
         pass

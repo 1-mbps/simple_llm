@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simple_llm"
-version = "1.13"
+version = "1.15"
 authors = [
     {name="Lucas Khan", email="lucaskhan03@gmail.com"},
     {name="Wania Saqib", email="waniasaqib54@gmail.com"}
@@ -22,7 +22,7 @@ license-files = ["LICEN[CS]E*"]
 
 [project.optional-dependencies]
 openai = ["openai"]
-gemini = ["google-generativeai"]
+gemini = ["google-genai"]
 
 [tool.hatch.build]
 includes = ["src/**"]

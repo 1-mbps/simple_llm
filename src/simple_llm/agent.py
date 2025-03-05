@@ -2,18 +2,18 @@ from .printing import print_role, print_dashed_line, print_message
 
 from abc import ABC, abstractmethod
 import os
-from typing import List, Dict, AsyncGenerator, Generator, Callable
+from typing import Any, List, Dict, AsyncGenerator, Generator, Callable, TYPE_CHECKING
 from fastapi.responses import StreamingResponse
 
-try:
-    from openai import OpenAI, AsyncOpenAI
-except Exception:
-    raise ImportError("Run `pip install simple_llm[openai]` to use OpenAI agents.")
-
-try:
-    from google.generativeai.generative_models import ChatSession
-except Exception:
-    raise ImportError("Run `pip install simple_llm[gemini]` to use OpenAI agents.")
+if TYPE_CHECKING:
+    try:
+        from openai import OpenAI, AsyncOpenAI
+    except Exception:
+        raise ImportError("Run `pip install simple_llm[openai]` to use OpenAI agents.")
+    try:
+        from google.genai import Client
+    except Exception:
+        raise ImportError("Run `pip install simple_llm[gemini]` to use Gemini agents.")
 
 class Agent(ABC):
     def __init__(
@@ -21,7 +21,7 @@ class Agent(ABC):
         api_type: str,
         name: str,
         model: str,
-        client: OpenAI | AsyncOpenAI | ChatSession,
+        client: OpenAI | AsyncOpenAI | Client,
         system_message: str,
         stream: bool,
         api_key: str | None,
@@ -60,11 +60,10 @@ class Agent(ABC):
         return self.stream_reply(query, **kwargs) if self.stream else self.nostream_reply(query, **kwargs)
     
     def nostream_reply(self, query: str, **kwargs) -> str:
-        if self.track_msgs:
-            self.add_user_message(query)
+        self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        completion = self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
+        completion = self.completion(self._messages, False, **kwargs)
         response = self.process_completion(completion)
         
         if self.track_msgs:
@@ -73,13 +72,15 @@ class Agent(ABC):
         return response
 
     def stream_reply(self, query: str, **kwargs) -> Generator[str]:
-        if self.track_msgs:
-            self.add_user_message(query)
+        self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        stream = self.completion_fn(**self.get_completion_args(True, messages=self._messages, query=query, **kwargs))
+        stream = self.completion(self._messages, True, **kwargs)
         
         return self.process_stream(stream)
+    
+    def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs) -> Any:
+        return self.completion_fn(**self.get_completion_args(stream, messages=messages, **kwargs))
 
     @abstractmethod
     def get_completion_function(self) -> Callable:
@@ -122,7 +123,11 @@ class Agent(ABC):
     @abstractmethod
     def add_tool(self, tool):
         pass
-
+    
+    @abstractmethod
+    def get_logprobs(self, completion) -> list:
+        pass
+    
     def start_chat(self, init_message: str = None, stream: bool = False, **kwargs) -> None:
         """
         For user-agent conversations that get printed to the console.
@@ -200,7 +205,7 @@ class AsyncAgent(Agent):
         api_type: str,
         name: str,
         model: str,
-        client: OpenAI | AsyncOpenAI | ChatSession,
+        client: OpenAI | AsyncOpenAI | Client,
         system_message: str,
         stream: bool,
         api_key: str | None,
@@ -213,12 +218,14 @@ class AsyncAgent(Agent):
     async def reply(self, query: str, **kwargs) -> str | AsyncGenerator:
         return await self.stream_reply(query, **kwargs) if self.stream else await self.nostream_reply(query, **kwargs)
 
+    async def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs) -> Any:
+        return await self.completion_fn(**self.get_completion_args(stream, messages=messages, **kwargs))
+
     async def nostream_reply(self, query: str, **kwargs):
-        if self.track_msgs:
-            self.add_user_message(query)
+        self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        completion = await self.completion_fn(**self.get_completion_args(False, messages=self._messages, query=query, **kwargs))
+        completion = await self.completion(self._messages, False, **kwargs)
         response = self.process_completion(completion)
 
         if self.track_msgs:
@@ -227,11 +234,10 @@ class AsyncAgent(Agent):
         return response
 
     async def stream_reply(self, query: str, **kwargs) -> Generator[str]:
-        if self.track_msgs:
-            self.add_user_message(query)
+        self.add_user_message(query)
 
         # Unpack completion arguments and feed them into completion function
-        stream = await self.completion_fn(**self.get_completion_args(True, messages=self._messages, query=query, **kwargs))
+        stream = await self.completion(self._messages, True, **kwargs)
         
         return self.process_stream(stream)
 
