@@ -5,3 +5,4 @@ dist/
 avg_calc.py
 prompt_db*/
 build_qdrant.py
+demo.py
