@@ -34,7 +34,16 @@ class BaseOpenAIAgent(Agent, ABC):
         self._messages.append({"role": "user", "content": query})
 
     def add_agent_message(self, response: str) -> None:
-        self._messages.append({"role": "user", "content": response})
+        self._messages.append({"role": "assistant", "content": response})
+
+    @property
+    def last_response(self) -> str:
+        if not self._messages:
+            raise ValueError("No messages have been sent yet.")
+        last_msg = self.messages[-1]
+        if last_msg["role"] != "assistant":
+            raise ValueError("The last message was not from the assistant.")
+        return self._messages[-1]["content"]
 
     def completion(self, messages: list[dict], stream: bool = False, **kwargs):
         kwargs["model"] = kwargs.get("model", self.model)

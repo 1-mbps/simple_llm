@@ -51,6 +51,15 @@ class GeminiAgent(Agent):
     def add_agent_message(self, response: str) -> None:
         self._messages.append(types.Content(role="model", parts=[types.Part.from_text(text=response)]))
 
+    @property
+    def last_response(self) -> str:
+        if not self._messages:
+            raise ValueError("No messages have been sent yet.")
+        last_msg = self.messages[-1]
+        if last_msg.role != "model":
+            raise ValueError("The last message was not from the model.")
+        return last_msg.text
+
     def _add_agent_content(self, completion: types.GenerateContentResponse):
         self._messages.append(completion.candidates[0].content)
 

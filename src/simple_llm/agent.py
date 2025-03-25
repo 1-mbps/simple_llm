@@ -161,7 +161,9 @@ class Agent(ABC):
     def messages(self):
         return self._messages
     
-    def most_recent_response(self) -> str:
+    @property
+    @abstractmethod
+    def last_response(self) -> str:
         pass
 
     async def sse_stream(self, query: str, chunk_event_name: str = "delta", **kwargs) -> AsyncGenerator[str]:

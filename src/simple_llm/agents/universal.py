@@ -43,6 +43,10 @@ class UniversalAgent(Agent):
     def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs):
         return self.agent.completion(messages, stream, **kwargs)
     
+    @property
+    def last_response(self):
+        return self.agent.last_response
+    
     def __getattr__(self, name):
         """
         Redirects all other method calls to the agent.
