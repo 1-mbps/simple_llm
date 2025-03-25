@@ -1,5 +1,7 @@
 from __future__ import annotations
 from .printing import print_role, print_dashed_line, print_message
+from .tools.models import Tool
+from .tools.toolcalls import get_function_schema
 
 from abc import ABC, abstractmethod
 import os
@@ -26,7 +28,7 @@ class Agent(ABC):
         system_message: str,
         stream: bool,
         api_key: str | None,
-        tools: list = [],
+        tools: list[Tool] = [],
         default_params: dict = {},
         track_msgs: bool = True
     ):
@@ -44,10 +46,11 @@ class Agent(ABC):
         self.track_msgs = track_msgs
 
         self._messages: List[Dict[str, str]] = []
-        self.completion_fn = self.get_completion_function()
+        self.tools = []
+        self.tool_matrix: Dict[str, Callable] = {}
 
         for tool in tools:
-            self.add_tool(tool)
+            self.add_tool(tool.function, tool.name, tool.description, **tool.settings)
 
     @abstractmethod
     def add_user_message(self, query: str) -> None:
@@ -61,51 +64,27 @@ class Agent(ABC):
         return self.stream_reply(query, **kwargs) if self.stream else self.nostream_reply(query, **kwargs)
     
     def nostream_reply(self, query: str, **kwargs) -> str:
-        self.add_user_message(query)
+        self.add_user_message(query=query)
 
         # Unpack completion arguments and feed them into completion function
         completion = self.completion(self._messages, False, **kwargs)
-        response = self.process_completion(completion)
-        
-        if self.track_msgs:
-            self.add_agent_message(response)
-
-        return response
+        return self.process_completion(completion)
 
     def stream_reply(self, query: str, **kwargs) -> Generator[str]:
-        self.add_user_message(query)
+        self.add_user_message(query=query)
 
         # Unpack completion arguments and feed them into completion function
         stream = self.completion(self._messages, True, **kwargs)
         
         return self.process_stream(stream)
     
+    @abstractmethod
     def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs) -> Any:
-        return self.completion_fn(**self.get_completion_args(stream, messages=messages, **kwargs))
-
-    @abstractmethod
-    def get_completion_function(self) -> Callable:
-        """
-        Override this to return the client's completion method, like OpenAI().chat.completions.create()
-        """
         pass
 
     @abstractmethod
-    def get_completion_args(self, stream: bool, messages: list[dict] = None, query: str = None, **kwargs) -> dict:
-        """
-        Return a dictionary containing arguments passed to the completion function
-        """
-        pass
-
     def process_stream(self, stream: AsyncGenerator):
-        response = ""
-        for chunk in stream:
-            delta = self.process_chunk(chunk)
-            if delta:
-                yield delta
-                response += delta
-        if self.track_msgs:
-            self.add_agent_message(response)
+        pass
 
     @abstractmethod
     def process_completion(self, completion) -> str:
@@ -121,9 +100,17 @@ class Agent(ABC):
         """
         pass
 
-    @abstractmethod
-    def add_tool(self, tool):
-        pass
+    def add_tool(self, tool: Callable, name: str, description: str, **kwargs):
+        schema = get_function_schema(tool, name=name, description=description)
+        self.tools.append(schema)
+        self.update_tool_matrix(tool, name)
+
+    def add_tool_dict(self, tool: Callable, name: str, tool_dict: dict) -> None:
+        self.tools.append(tool_dict)
+        self.update_tool_matrix(tool, name)
+
+    def update_tool_matrix(self, tool: Callable, name: str) -> None:
+        self.tool_matrix[name] = tool
     
     @abstractmethod
     def get_logprobs(self, completion) -> list:
@@ -174,8 +161,8 @@ class Agent(ABC):
     def messages(self):
         return self._messages
     
-    def set_messages_pointer(self, msg_list: List) -> None:
-        self._messages = msg_list
+    def most_recent_response(self) -> str:
+        pass
 
     async def sse_stream(self, query: str, chunk_event_name: str = "delta", **kwargs) -> AsyncGenerator[str]:
         """
@@ -219,38 +206,29 @@ class AsyncAgent(Agent):
     async def reply(self, query: str, **kwargs) -> str | AsyncGenerator:
         return await self.stream_reply(query, **kwargs) if self.stream else await self.nostream_reply(query, **kwargs)
 
+    @abstractmethod
     async def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs) -> Any:
-        return await self.completion_fn(**self.get_completion_args(stream, messages=messages, **kwargs))
+        pass
 
-    async def nostream_reply(self, query: str, **kwargs):
-        self.add_user_message(query)
+    async def nostream_reply(self, query: str, **kwargs) -> str:
+        self.add_user_message(query=query)
 
         # Unpack completion arguments and feed them into completion function
         completion = await self.completion(self._messages, False, **kwargs)
-        response = self.process_completion(completion)
 
-        if self.track_msgs:
-            self.add_agent_message(response)
-
-        return response
+        return self.process_completion(completion)
 
     async def stream_reply(self, query: str, **kwargs) -> Generator[str]:
-        self.add_user_message(query)
+        self.add_user_message(query=query)
 
         # Unpack completion arguments and feed them into completion function
         stream = await self.completion(self._messages, True, **kwargs)
         
         return self.process_stream(stream)
 
+    @abstractmethod
     async def process_stream(self, stream: AsyncGenerator) -> AsyncGenerator[str]:
-        response = ""
-        async for chunk in stream:
-            delta = self.process_chunk(chunk)
-            if delta:
-                yield delta
-                response += delta
-        if self.track_msgs:
-            self.add_agent_message(response)
+        pass
     
     async def start_chat(self, init_message: str = None, stream: bool = False, **kwargs) -> None:
         """

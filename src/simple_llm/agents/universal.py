@@ -28,20 +28,20 @@ class UniversalAgent(Agent):
     def add_agent_message(self, response):
         return self.agent.add_agent_message(response)
     
-    def get_completion_args(self, stream, messages = None, query = None, **kwargs):
-        return self.agent.get_completion_args(stream, messages, query, **kwargs)
-    
-    def get_completion_function(self):
-        return self.agent.get_completion_function()
-    
     def process_chunk(self, chunk):
         return self.agent.process_chunk(chunk)
+    
+    def process_stream(self, stream):
+        return self.agent.process_stream(stream)
     
     def process_completion(self, completion):
         return self.agent.process_completion(completion)
     
     def get_logprobs(self, completion):
         return self.agent.get_logprobs(completion)
+    
+    def completion(self, messages: list[dict[str, str]], stream: bool, **kwargs):
+        return self.agent.completion(messages, stream, **kwargs)
     
     def __getattr__(self, name):
         """

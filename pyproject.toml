@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simple_llm"
-version = "1.15"
+version = "1.23"
 authors = [
     {name="Lucas Khan", email="lucaskhan03@gmail.com"},
     {name="Wania Saqib", email="waniasaqib54@gmail.com"}
@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-dependencies = ["termcolor>=2.4.0", "fastapi"]
+dependencies = ["termcolor>=2.4.0", "fastapi", "pydantic"]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
 

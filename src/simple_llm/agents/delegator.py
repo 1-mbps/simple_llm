@@ -1,9 +1,10 @@
+from __future__ import annotations # Allows usage of Qdrant and ChromaDB classes in type hints, even if they're not installed
 from .universal import UniversalAgent
 from ..agent import Agent
-from ..embeddings.openai import openai_embedding
+# from ..embeddings.openai import openai_embedding
 
 import math
-from typing import Type, TypeVar, Callable, Optional
+from typing import Type, TypeVar, Callable
 from uuid import uuid4
 
 errors = 0
@@ -129,17 +130,17 @@ class Delegator(UniversalAgent):
         """
         return round(math.exp(raw_logprob), round_to)
     
-    def delegate(self, query: str) -> str | int:
+    def delegate(self, query: str, number_bias: dict[str, float] = {}, print_scores: bool = False) -> str | int:
         self.add_user_message(query)
 
-        llm_response = self.completion(self._messages, query, False, logprobs=True, top_logprobs=5)
-        text = self.process_completion(llm_response)
+        llm_response = self.completion(self._messages, False, logprobs=True, top_logprobs=5)
 
-        self.add_agent_message(text)
+        # this adds the LLM response to the message list
+        self.process_completion(llm_response)
+
         logprobs = self.get_logprobs(llm_response)
 
         knn_scores = self.k_nearest_prompts(query)
-        # print(knn_scores)
         max_score = 0
         delegated_category = None
 
@@ -147,10 +148,16 @@ class Delegator(UniversalAgent):
             category = logtoken.token
 
             prob = self.linearize_logprob(logtoken.logprob)
+
+            if category in number_bias and prob >= number_bias[category]:
+                return category
+
             knn_score = knn_scores.get(category, 0)
 
             weighted_score = self.score(prob, knn_score)
-            print(f"Category: {category}, Weighted Score: {weighted_score}      Logprob: {prob}      kNN Score: {knn_score}")
+            
+            if print_scores:
+                print(f"Category: {category}, Weighted Score: {weighted_score}      Logprob: {prob}      kNN Score: {knn_score}")
             
             if weighted_score > max_score:
                 max_score = weighted_score
