@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simple_llm"
-version = "1.25"
+version = "1.26"
 authors = [
     {name="Lucas Khan", email="lucaskhan03@gmail.com"},
 ]
