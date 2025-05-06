@@ -4,10 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simple_llm"
-version = "1.23"
+version = "1.25"
 authors = [
     {name="Lucas Khan", email="lucaskhan03@gmail.com"},
-    {name="Wania Saqib", email="waniasaqib54@gmail.com"}
 ]
 description="Ultra-lightweight LLM agent orchestration for Gemini and OpenAI-like providers"
 readme = "README.md"

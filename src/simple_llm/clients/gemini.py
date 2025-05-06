@@ -35,7 +35,7 @@ class GeminiAgent(Agent):
         # Set default parameters for Gemini model
         self.llm_config = types.GenerateContentConfig(
             system_instruction=[types.Part.from_text(text=system_message)], 
-            tools=[types.Tool(function_declarations=self.tools)],
+            tools=[types.Tool(function_declarations=self.tools)] if self.tools else None,
             **default_params
         )
 
