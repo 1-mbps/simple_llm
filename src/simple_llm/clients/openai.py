@@ -158,3 +158,27 @@ class AsyncOpenAIAgent(BaseOpenAIAgent, AsyncAgent):
     def __init__(self, name: str, model: str, system_message: str, stream: bool = False, track_msgs: bool = True, track_usage: bool = True, tools: list[Tool] = [], default_params: dict = {}, api_key = None):
         client = AsyncOpenAI(api_key=api_key)
         super().__init__(name, model, client, system_message, stream, track_msgs, track_usage, tools, default_params, api_key)
+
+
+def create_openai_like_agent(class_name: str, base_url: str):
+    """
+    Dynamically creates a class that inherits from BaseOpenAIAgent.
+    This allows for the creation of agents that are compatible with the OpenAI standard.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        model: str,
+        system_message: str,
+        stream: bool = False,
+        track_msgs: bool = True,
+        track_usage: bool = True,
+        tools: list[Tool] = [],
+        default_params: dict = {},
+        api_key: Optional[str] = None,
+    ):
+        client = OpenAI(base_url=base_url, api_key=api_key)
+        BaseOpenAIAgent.__init__(self, name, model, client, system_message, stream, track_msgs, track_usage, tools, default_params)
+        
+    return type(class_name, (BaseOpenAIAgent,), {"__init__": __init__})
